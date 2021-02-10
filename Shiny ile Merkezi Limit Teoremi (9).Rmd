@@ -1,0 +1,634 @@
+---
+title: "Shiny ile Merkezi Limit Teoremi"
+author: "App Coders- Kerime Nur Karagöz / Gülay Yazer / Seçil Göktaş"
+date: "3 02 2021"
+output: html_document
+runtime: shiny
+---
+
+son
+
+-----kerime
+
+* Shiny uygulamasi 2 turlu acilir ;
+
+1-) File - New File - Shiny Web App
+
+2-) File - New File - R Markdown - Shiny secenegi 
+
+* indirecegimiz ve kullanacagımız paketler:
+
+1-) shiny ile app uygulaması yapacagız
+
+2-) ggplot2 ile grafik cizip teoremi gorsellestirip, orneklem veya populasyon sayısı degistikce olusan dagılımın nasıl degistigini  görecegız.
+
+3-) shinythemes ile de onceden tanımlanmıs temalardan birini sececegiz.
+
+
+```
+library(shiny) #yüklenecek paketler
+library(ggplot2)
+library(shinythemes)
+
+```
+
+* Shiny terminolojisinde,  UI (kullanıcı arayüzü) ve Server (sunucu) vardır. Kullanıcı arayüzü, kullanıcının görebileceği bir web belgesidir, Shiny'nin işlevlerini kullanarak yazdığınız HTML'dir. Sunucu, uygulamanın mantığından sorumludur; kullanıcı sayfayla etkileşim kurduğunda web sayfasına ne gösterileceğini söyleyen talimatlar dizisidir.
+
+
+
+## Kullanıcı Arayuzu (ui) Kod  < baslangic > 
+
+* ui: Uygulama için bir HTML kullanıcı arayüzünü  bir araya getiren iç içe geçmiş  R fonksiyonlarıdır. Uygulamanın  içeriği  ve  stilinden sorumludur.Kullanıcı arayüzünü oluşturmak için ınput ve output fonksiyonları yer alır.
+
+* " fluidpage() " : Değişken yerleşim düzenine sahip bir sayfa oluşturmasını sağlar. 
+
+* ui kısmı görselleştirme yönünden sorumludur ve bu nedenle bunlarla ilgili tüm kodlar  " fluidPage() " fonksiyonda yer alacaktır .Sayfayi acan fonksiyondur. Butun arayuzleri buraya yazarız. Ayrıca FluidPage() içindeki tüm argümanların virgülle ayrılması gerekir.
+
+* Shiny, kullanıcının bir uygulamayla sahip olabileceği birçok etkileşim türünü desteklemek için birçok girdi işlevi sağlar.
+
+Örneğin, textInput () 	Metin girmek için bir alan olusturur , selectInput () Aralarından seçim yapabileceğiniz seçenekler içeren bir kutu olusturur.
+
+* Server'a girdiler aktarılır. mainPanel() de ise çıktılar mevcuttur.
+
+
+* Girişler her değiştiğinde çıkışlar otomatik olarak güncellenir. 
+
+#### Ui kısmında merkezi limit teoremi baslıgını yazıp uygulamanın görselliğini düzenleyecğiz.
+
+```
+ui <- fluidPage()
+```
+
+
+* " headerPanel() "  ile baslik yazilir, h1 komutu ile basligin buyuklugu belirlenir
+
+
+```
+headerPanel(h1("Merkezi limit Teoremi - CLT"),)  #h1 secilerek ana baslik yazıldı
+```
+
+-----gülay
+
+
+#### sidebar kod < baslangic >
+
+* " sidebarLayout() " : Bir kenar çubuğu ve ana alan düzenlemek için kullanılır.
+
+* " sidebarPanel() " : Bir kenar çubuğu paneli oluşturmak için kullanılır.Burada girdi değişkenlerimiz yer alıyor.
+
+* " sliderInput() " : Yapılandırılmış sayı değerlerinin girişi için bir giriş kontrolü oluşturuluyor.Burada Seçilen sayıyı ekrana yazdıran bir shiny uygulaması hesaplamasına yapar.
+ 
+* " textInput() " : Yapılandırılmamış sayı değerlerinin girişi için bir giriş kontrolü oluşturuluyor.Burada Sınırlandırılmamış sayıyı kendimiz belirleyerek  ekrana yazdıran bir shiny uygulamasının hesaplamasını yapar.
+
+
+```
+sidebarLayout( 
+                  
+              sidebarPanel( 
+                    
+                    
+                    #Shapiro test için:
+                    sliderInput(inputId = "n", #Bu n diye isimlendirdiğimiz bir girdi değişkeni oluşturduk.Burada her yapılan değişiklik n değişkeni otomatik olarak atanacak.Bu n server bölümünde işlememize yarıyor.
+                    
+                                label = "Normallik testi Icin Orneklem Genisligini Seciniz",   #Girdi nesnesi ismi
+                                
+                                min = 1, max = 50, value = 15, #SEÇİLECEK MİNİMUM DEĞER,MAKSİMUM DEĞER ,BAŞLANGIÇ DEĞER.
+                                animate = T), #Varsayılan ayarlarla basit animasyon kontrollerini göstermek için TRUE(T)
+                                
+                    #POPULASYON İÇİN:
+                    sliderInput(inputId ="p_buyukluk", #Bu p_buyukluk diye isimlendirdiğimiz bir girdi değişkeni oluşturduk.Burada her yapılan değişiklik p_buyukluk değişkeni otomatik olarak atanacak.Bu p_buyukluk server bölümünde işlememize yarıyor.
+                    
+                                label = "Popusyon Buyuklugu Seciniz", #Girdi nesnesi ismi
+                                
+                                 min = 1000, max = 100000,value = 2000, animate = T), #SEÇİLECEK MİNİMUM DEĞER,MAKSİMUM DEĞER ,BAŞLANGIÇ DEĞER,Varsayılan ayarlarla basit animasyon kontrollerini göstermek için TRUE(T)
+                               
+                  
+                    #Örneklem için:
+                  textInput(inputId ="o_buyukluk",   ##Bu o_buyukluk diye isimlendirdiğimiz bir girdi değişkeni oluşturduk.Burada her yapılan değişiklik o_buyukluk  değişkeni otomatik olarak atanacak.Bu o_buyukluk server bölümünde işlememize yarıyor.
+                  
+                            label = "Orneklem Buyuklugu Seciniz", #Girdi nesnesi ismi
+                            
+                              value = 50),    #Burada sadece başlangıç değeri vardır çünkü girdi nesnesinde sayıya sınır koymadan istediğimiz değeri verebiliriz. 
+                              
+                              
+```
+
+----kerime
+
+
+* " selectInput() " : fonksiyonu bir girdi işlevi oluşturur. Deger listesi belirlendi yani bir veya daha fazla oge secmek icin kullanilabilecek bir secim listesi olusturuldu. Bu secim listesine dagılımlar eklendi. Ve kendi sectigimiz kısaltmaları atadık.  "selected = " ile de varsayılanı sectik. "label =" ile bu kisima ait basligi olusturuldu.
+
+* " sliderInput() " : fonksiyonu sayiları secmek için kullanilir. secilen sayiyi ekranda yazdirir. Uygulama icin populasyon buyuklugu ve orneklem yinelemesi icin bu fonksiyonu kullanıldı. "label" ile gorunecek basligi yazıldı. Min, max ve mevcut olacak degerleri "value" ya yazıldı. Animasyon olması ve play tusu icin  "animate = T"  eklendi. (Digerleri icin de eklendi.) Böylelikle başlattığımızda sayı arttıkça histogramda nasıl bir değişim olduğunu sırayla gözlemleyeceğiz.
+
+#### Burada kullanacağımız dağılımlar:
+  * Normal
+  * Üstel
+  * Beta
+  * Ki-kare
+  * F
+  * t
+  * Gamma
+  * Lognormal
+  * Weibull
+
+Bu dagılımları, popülasyon ve örneklem sayılarını değiştirerek elde edeceğimiz histogram üzerinden hangi dağılıma yakınsadığını göreceğiz. Bununla beraber shapiro testi ile de normallik kontrolü yapacağız. Burdaki amacımız inputlara çeşitli dağılımları girmekti. 
+
+
+```
+      ,
+      selectInput("dagilim",            #inputu dagilim olarak atadik. ve alt baslıgı yazdık
+                  label = "Dagilim Seciniz",  
+                  
+                  choices = c("Duzgun" = "unif",    #dagilimlari yeni kısa isimlere atadik.
+                                    "Normal" = "norm", 
+                                    "Ustel" = "exp",
+                                    "Beta" = "beta",
+                                    "Ki-kare" = "kikare",
+                                    "F" = "f",
+                                    "T" = "t",
+                                    "Gamma" = "gamma",
+                                    "Lognormal" = "logn",
+                                    "Weibull" = "weibull"
+                                    ), 
+                  
+                  selected = "norm"),   #varsayilani normal dagilim sectik.
+      
+      sliderInput("o_yineleme",        #orneklem yinelemesini  
+                  label = "Orneklem Yinelemesi",    
+                  value = 200, min = 100, max = 10000, animate = T)
+
+```
+
+
+
+#### sidebar girdi kodlari < bitis >
+
+
+----seçil
+
+
+#### main panel kod < baslangic >
+
+* Daha önceden de açıklandığı gibi Shiny uygulamasının iki öğesi vardır.Birincisi hem kullanıcı kontrollerini hem de grafikler veya tablolar gibi çıktı öğelerinin düzenini ve yerleşimini yöneten ui diğeri de tüm hesaplamaları ve grafiklerin oluşturulmasını idare eden server dır.
+
+* ui.R'ın kullanıcı arayüzünü üç öğe oluşturur bunlar; headerpanel,sidebarpanel ve mainpanel dir.
+
+* mainpanelin işlevi, çıktı grafiği ile ana paneli oluşturmaktır.
+
+
+```
+
+ mainPanel(                
+                    
+                    tabsetPanel(
+                      
+                      #plot tab
+                      
+  #Öğeleri içeren bir sekme seti oluşturun tabPanel(),çıktıyı bağımsız olarak görüntülenebilir birden çok bölüme bölmek için kullanılır.
+                      
+                      tabPanel("Grafik",
+                               plotOutput("plot_p"),   # plotoutputun işlevi, örneğimizdeki grafiği işlemektir.
+                               plotOutput("plot_o_ort")),  
+                      
+                      
+                      #data tab
+                      
+                      
+                      
+ # Heading etiketleri, sayfa içerikleri için uygulanmakta olan HTML başlık etiketleri olarak bilinirler. 1 ile 6 arasındaki H etiketleri, H1-H2 şeklinde giden alt başlık kodlamalarına sahiptir.
+ #özellikle içerik başlıklarında ve içeriğin anlatım kısımlarında, arayıcının kullanabileceği kelimelere yer verilmesi gereken kısımdır. 
+ #H1 etiketi ana başlığınızda kullanılır. Yani metnin en üstünde yer alan ilk başlıkta;
+#H2 etiketi, ilk alt başlığa verilir;
+#H3 etiketi, metinde birden fazla alt başlık kullanıldıysa, ilk alt başlıktan sonraki alt başlığa verilmelidir. 
+#H4, H5 de aynı sırayla oluşturulmalıdır.  
+
+                      
+                      
+                      tabPanel("Data",  
+                               h4("Populasyon"), 
+                               verbatimTextOutput("p_summary"),     #kod gibi biçimlendirilmiş metinler sunmak içindir. 
+                               verbatimTextOutput("p_yineleme"), 
+                               h4("Orneklem"), 
+                               verbatimTextOutput("o_ort_summary"), 
+                               verbatimTextOutput("o_ort_yineleme")),
+                               
+                      
+                    # Bir uygulama sayfasında reaktif bir çıktı değişkenini metin olarak işlediğimizde
+                    # textOutput () genellikle renderText () ile eşlenir ve normal metni <div> veya <span> içine koyar; 
+                    ## Buradaki div etiketi sayfa düzeninde kullanılır bir div elemanı site içerisinde her yere konumlandırılabilir ve içine istediğimiz  herhangi bir unsur yerleştirebiliriz.
+              ## Span etiketi isteğe bağlı verilerin gösterilmesi için yapısal ve görsel bir katman oluşturulmasını sağlar.
+                    
+                    
+                    
+                    
+                    #verbatimTextOutput () genellikle renderPrint () ile eşlenir ve <pre> içinde sabit genişlikte metin sağlar. Buradaki pre etiketi, önceden biçimlendirilmiş metin tanımlar. Yani kod kısmında yaptığımız satır sonlarını dikkate alır.  
+                      
+                      
+   
+  ## tabpanel kısmında çıktılar görüntüleniyordu , burada da normallik testi,histogram,shapiro , qq plot ve dağılımın normalliğini belirten hipotezler çıktı olarak yazıldı. 
+   
+   
+   
+                      tabPanel("Normallik Testi",
+                               
+                               plotOutput("hist"),
+                               
+                               textOutput("hipotez0"),
+                               
+                               textOutput("hipotez1"),
+                               
+                               textOutput("shapiro"),
+                               
+                               plotOutput("qq"))
+                      
+                     
+                    )
+                    
+                    
+                  )
+                )
+                
+               
+
+  #Normallik testi elimizde olan verilerin normal dağılıma uyup uymadığını kontrol etmemimize yardımcı olur. veriler normal dağılım, poisson dağılım, binom dağılım ve başka dağılımlar göstermektedirler. Fakat, bu dağılımlardan en önemlisi normal dağılımdır.  sebeb parametrik testlerin uygulanması için verilerin normal dağılması gerektiğidir.
+
+  #Shapiro-Wilk-W testi normallik varsayımını sınayan en güçlü testtir. 
+#Gösterilen anlamlılık düzeyi p<0.5 düzeyinde anlamlı ise hipotez reddedilir ve dağılımın normal olmadığı kararı verilir. Şayet p>0.5 değeri elde edilmişse hipotez kabul edilir ve dağılımın normal dağılımdan anlamlı bir farklılık sergilemediği yorumu yapılır.
+
+
+
+)
+
+```  
+
+
+#### main panel kod < bitis >
+
+
+## Kullanıcı Arayuzu Kod  < bitis >
+
+---gülay
+
+
+## Server Kod  < baslangic >
+
+* " server(Sunucu) " : kullanıcı arayüzünde görüntülenen R nesnelerinin nasıl oluşturulacağı ve yeniden oluşturulacağına ilişkin talimatları içeren bir işlevdir.
+
+* " reactive() " : Reaktif bir ifade oluşturmak için normal bir ifadeyi sarar mesela shapiro testi için normalde sürekli input$n şeklinde kullandığımız sayıları  tek bir değişkene aktarıp yeri geldiği zaman bu değişkeni kullanabiliriz bunu da reaktif fonksiyonunun yapılarıyla oluşur.
+
+* " session " : burada shiny de server işlevleri isteğe bağlı olarak bir parametre olarak içeriyor.
+
+```
+server <- function(input, output, session){  
+  
+  #shapiro testi:
+  sayi <- reactive({   #burada sayıyı oluşturduk
+    as.numeric(input$n)  #burada sayı değişkeni bizim kullanacağımız değişken olacak.yani sürekli input$n yazmamıza gerek kalmayacak. 
+  })
+  
+  data <- reactive({   #burada veriyi oluşturduk.
+    as.numeric(rpois(n = sayi(), lambda = 3))  #poisson dagılımından seçtik çünkü bu veri tek parametre olması gerekiyor.Bu şekilde veriyi oluşturduk.
+  })
+  
+
+   
+  #Bu veri değişkenini selver bölümünde işlememiz gerekiyor.Hangi işlemi yapacaksak bu işlemi seçip bir çıktı nesnesi oluşturmamız gerekiyor bunu da output değişkeni ile yapıyoruz.
+  output$hist <- renderPlot({   #shapiro testi için histogram oluşturduk.
+    hist(data(),col = "Navy blue" )
+  })
+  
+  #shapiro testi için hipotez kuruldu.
+  output$hipotez0 <- renderText({ #burada isteğimiz şeyi ekranda yazı yazmasında kullanılan fonksiyondur.
+    paste("H0 : Dagilim Normaldir") 
+  })
+  
+  output$hipotez1 <- renderText({ #burada isteğimiz şeyi ekranda yazı yazmasıdır.
+    paste("H1 : Dagilim Normal Degildir")
+  })
+  
+  #Grafikte normalliği görmemiz için bir shapiro testi oluşturduk.
+  output$shapiro <- renderPrint({ #bütün testler renderPrint() fonksiyonuyla yazılır.
+    shapiro.test(data())
+  })
+  
+  #en son olarak shapiro testi için QQ plot grafiğini çizdirdik.
+  output$qq <- renderPlot({ #Çizim Çıktısı
+    qqnorm(data()) #qqnorm varsayılan yöntemi içindeki değerlerin normal bir QQ plot grafiğini üreten genel bir işlevdir.
+    qqline(data()) #grafiğe bir "teorik" çizgi eklemesini sağlar.
+  })
+
+```
+
+
+
+
+----kerime
+
+*output, server fonksiyonun içinde yeni bir eleman tanımlayarak bir girdi oluşturabiliriz . Öge adı, ui icinde oluşturduğumuz reaktif ögenin adıyla eşleşmelidir .
+yani normal dagilimi norm dediysek oyle yazmaliyiz. "rnorm" vs ise dagilimin fonksiyonudur.
+
+*Asagıda ise populasyonun ve orneklem ortalamasinin if ile hangi dagilimsa ona gore grafıgın ve degerlerin olusmasını sagladik.
+
+*Shiny bir çıktıyı yeniden oluşturduğunda, çalışmakta olduğu kodu vurgular. Bu geçici vurgulama, Shiny'ın nasıl reaktif çıktı oluşturduğunu görmemize yardımcı olabilir.
+
+* "reactive()" : ile Shiny nesnelerinizi otomatik olarak reaktif hale getirecektir.  Bu nedenle, olusturulan çıktı ne olursa olsun, x'in güncellenmiş değerini kullanacağını biliriz. Bir reaktif değişkeni tanımlamak için reaktif ({}) işlevini kullanabiliriz.
+
+
+* Asagıda ise populasyonun ve orneklem ortalamasinin if ile hangi dağılımsa ona gore grafığin ve degerlerin olusması sağlandı. Seçilecek dağılıma göre fonksiyon secilip değerleri girildi. 
+
+orneğin; f dağılımı seçtiysek, fonksiyonu "rf" dir. serbestlik dereceleri de 1 ve 12 seçildi. Ve populasyon için oluşturduğumuzdan p_buyukluk i seçip input a bağladık. Bu Her dağılım için oluşturuldu.
+
+
+
+```
+
+populasyon <- reactive({
+  
+        if (input$dagilim == "norm") {rnorm(input$p_buyukluk)}            #Normal dagilimi secip secmedigimizi kontrol ediyoruz
+        else if (input$dagilim == "unif") {runif(input$p_buyukluk)}           #Duzgun dagilim secilmis olsun
+        else if (input$dagilim == "exp") {rexp(input$p_buyukluk)}                       #ustel dagilim secilmis olsun
+        else if (input$dagilim == "beta") {rbeta(input$p_buyukluk,shape=5, shape2=1, ncp = 0)}         #beta dagilim secilmis olsun
+        else if (input$dagilim == "kikare") {rchisq(input$p_buyukluk,df=10)}          #kikare dagilim secilmis olsun
+        else if (input$dagilim == "f") {rf(input$p_buyukluk, df1=2, df2=12)}             #f dagilim secilmis olsun
+        else if (input$dagilim == "t") {rt(input$p_buyukluk, df=5, ncp=0)}                       #t dagilim secilmis olsun
+        else if (input$dagilim == "gamma") {rgamma(input$p_buyukluk, shape=5, rate = 1, scale = 1)}    #gamma dagilim secilmis olsun
+        else if (input$dagilim == "logn")  {rlnorm(input$p_buyukluk, meanlog = 0, sdlog = 1)}             #lognormal dagilim secilmis olsun
+        else if (input$dagilim == "weibull") {rweibull(input$p_buyukluk,shape=1, scale = 1)}                 #weibull dagilim secilmis olsun
+  
+    })
+    
+    
+```
+
+
+-----seçil
+
+* Her türlü R grafiğini (temel, ggplot2 veya başka türlü) " plotOutput() "ve " renderPlot() " ile görüntüleyebiliriz. 
+
+* " renderPlot() " : uygulamamızda grafikleri görüntülemek için güçlü bir araçtır.
+
+* Burada kod kısmında plot içine popülasyon ile ilgili değerleri yazdık.
+
+```
+
+ output$plot_p <-renderPlot({
+    
+    plot(density(populasyon()), axes=FALSE, xlab="", ylab="", main="",lwd=2,col="blue") 
+    par(new=TRUE)         #par grafik parametrelerini ayarlamak veya sorgulamak için kullanılabilir.
+    hist(populasyon(),main="Populasyon histogrami ve yogunluk grafigi", xlab = "")     
+    abline(v = mean(populasyon()),col = "red",  lwd=2)    #abline; bu işlev, geçerli grafik üzerinden bir veya daha fazla düz çizgi ekler. v: dikey çizgi (ler) için x-değerleri.
+    
+  })
+  
+  
+  # ikinci kod kısmında örneklem ortalaması için değerler yazıldı.
+  
+  
+  output$plot_o_ort <-renderPlot({
+    
+    plot(density(o_ort()),axes=FALSE,xlab="",ylab="",main="",lwd=2,col="blue")
+    par(new=TRUE)        #par grafik parametrelerini ayarlamak veya sorgulamak için kullanılabilir. 
+    hist(o_ort(),main="Ornek ortalama histogrami ve yogunluk grafigi", xlab = "")
+    abline(v = mean(o_ort()), col = "red", lwd = 2)      #abline; bu işlev, geçerli grafik üzerinden bir veya daha fazla düz çizgi ekler. v: dikey çizgi (ler) için x-değerleri.
+    
+  })
+  
+  
+  
+  
+  
+}
+
+shinyApp(ui, server)
+
+ #ShinyApp fonksiyonunda kodun yapısına baktığımızda  tanımladığımız iki nesne var: ui ve server. Bunları komutla bir uygulamaya dönüştürdük. Yani ui ve server dosyalarını birbirine bağladık.
+#Shiny uygulamalarını bir knitr belgesinin içine yerleştirmek gibi birlikte çalışabilirlik amaçları için tasarlanmıştır .
+
+```
+
+## Server Kod  < bitis >
+
+
+
+
+#### Uygulama üzerinde anlatım =>
+
+
+
+
+#### En son uygulama kod =>
+
+
+```{r}
+library(shiny)
+library(shinythemes)
+ui <- fluidPage(theme=shinytheme("journal"),
+                h1("Merkezi Limit Teoremi - CLT"),   #baslik
+                
+                #sidebar baslangic
+                
+                sidebarLayout(
+                  
+                  sidebarPanel(
+                    
+                    #sidebar input 
+                    sliderInput(inputId = "n",
+                                label = "Orneklem Genisligini Seciniz",
+                                min = 1, max = 50, value = 15,
+                                animate = T),
+                    
+                    sliderInput(inputId ="p_buyukluk",
+                                label = "Popusyon Buyuklugu Seciniz",
+                                value = 2000, min = 1000, max = 100000, animate = T),
+                    
+                    textInput(inputId ="o_buyukluk",
+                              label = "Orneklem Buyuklugu Seciniz",
+                              value = 50),
+                    
+                    selectInput(inputId ="dagilim", 
+                                label = "Dagilim Seciniz ",
+                                choices = c("Duzgun" = "unif",
+                                            "Normal" = "norm", 
+                                            "Ustel" = "exp",
+                                            "Beta" = "beta",
+                                            "Ki-kare" = "kikare",
+                                            "F" = "f",
+                                            "T" = "t",
+                                            "Gamma" = "gamma",
+                                            "Lognormal" = "logn",
+                                            "Weibull" = "weibull"
+                                ), 
+                                
+                                selected = "norm"),
+                    
+                    sliderInput(inputId ="o_yineleme",
+                                label = "Orneklem Yinelemesi",
+                                value = 200, min = 100, max = 1000, animate = T)
+                    
+                  ),
+                  #sidebar kod [son]
+                  
+                  #main panel kod [baslangic]
+                  
+                  mainPanel(
+                    
+                    tabsetPanel(
+                      
+                      #plot tab
+                      
+                      tabPanel("Grafik",
+                               plotOutput("plot_p"),   
+                               plotOutput("plot_o_ort")),  
+                      
+                      #data tab
+                      
+                      tabPanel("Data", 
+                               h4("Populasyon"), 
+                               verbatimTextOutput("p_summary"), 
+                               verbatimTextOutput("p_yineleme"), 
+                               h4("Orneklem"), 
+                               verbatimTextOutput("o_ort_summary"), 
+                               verbatimTextOutput("o_ort_yineleme")),
+                      
+                      tabPanel("Normallik Testi",
+                               
+                               plotOutput("hist"),
+                               
+                               textOutput("hipotez0"),
+                               
+                               textOutput("hipotez1"),
+                               
+                               textOutput("shapiro"),
+                               
+                               plotOutput("qq"))
+                      
+                      
+                      
+                      
+                    )
+                    
+                    
+                  )
+                )
+                
+                #main panel kod[son]
+)
+#ui kod [son]
+
+#server side kod [baslangic]
+
+server <- function(input, output, session){
+  
+  sayi <- reactive({
+    as.numeric(input$n)
+  })
+  
+  data <- reactive({
+    as.numeric(rpois(n = sayi(), lambda = 3))
+  })
+  
+  output$hist <- renderPlot({
+    hist(data(),col = "Navy blue" )
+  })
+  
+  output$hipotez0 <- renderText({
+    paste("H0 : Dagilim Normaldir")
+  })
+  
+  output$hipotez1 <- renderText({
+    paste("H1 : Dagilim Normal Degildir")
+  })
+  
+  output$shapiro <- renderPrint({
+    shapiro.test(data())
+  })
+  
+  output$qq <- renderPlot({
+    qqnorm(data())
+    qqline(data())
+  })
+  
+  
+  
+  
+  populasyon <- reactive({
+    
+    
+    
+    if (input$dagilim == "norm") {rnorm(input$p_buyukluk)} 
+    else if (input$dagilim == "unif") {runif(input$p_buyukluk)} 
+    else if (input$dagilim == "exp") {rexp(input$p_buyukluk)} 
+    else if (input$dagilim == "beta") {rbeta(input$p_buyukluk,shape=5, shape2=1, ncp = 0)}
+    else if (input$dagilim == "kikare") {rchisq(input$p_buyukluk,df=10)}
+    else if (input$dagilim == "f") {rf(input$p_buyukluk, df1=2, df2=12)}
+    else if (input$dagilim == "t") {rt(input$p_buyukluk, df=5, ncp=0)}
+    else if (input$dagilim == "gamma") {rgamma(input$p_buyukluk, shape=5, rate = 1, scale = 1)}
+    else if (input$dagilim == "logn") {rlnorm(input$p_buyukluk, meanlog = 0, sdlog = 1)}
+    else if (input$dagilim == "weibull") {rweibull(input$p_buyukluk,shape=1, scale = 1)}
+    
+    
+    
+  })
+  
+  
+  
+  o_ort <- reactive({ 
+    
+    for (i in 1:input$o_yineleme) {
+      if (i==1) {
+        o_ort <- c(mean(sample(populasyon(), input$o_buyukluk, replace = TRUE ))) 
+      } else {
+        o_ort <- c(o_ort,mean(sample(populasyon(), input$o_buyukluk, replace = TRUE ))) 
+      }
+    }
+    
+    o_ort 
+    
+  })
+  
+  
+  
+  
+  output$p_summary <- renderPrint({summary(populasyon())})
+  output$p_yineleme <- renderPrint({str(populasyon())})
+  output$o_ort_summary <- renderPrint({summary(o_ort())})
+  output$o_ort_yineleme <- renderPrint({str(o_ort())})
+  
+  
+  
+  
+  output$plot_p <-renderPlot({
+    
+    plot(density(populasyon()), axes=FALSE, xlab="", ylab="", main="",lwd=2,col="blue") 
+    par(new=TRUE)  
+    hist(populasyon(),main="Populasyon histogrami ve yogunluk grafigi", xlab = "") 
+    abline(v = mean(populasyon()),col = "red",  lwd=2)  
+    
+  })
+  
+  
+  
+  output$plot_o_ort <-renderPlot({
+    
+    plot(density(o_ort()),axes=FALSE,xlab="",ylab="",main="",lwd=2,col="blue")
+    par(new=TRUE)
+    hist(o_ort(),main="Ornek ortalama histogrami ve yogunluk grafigi", xlab = "")
+    abline(v = mean(o_ort()), col = "red", lwd = 2)
+    
+  })
+  
+  
+  
+  
+  
+  
+}
+
+shinyApp(ui, server)
+```
+
+
+
+
+
+
